@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
-from django.utils import timezone  # <-- НОВЫЙ ИМПОРТ
+from django.utils import timezone
 
 from .models import Choice, Question
 
@@ -12,11 +12,6 @@ class IndexView(generic.ListView):
     context_object_name = 'latest_question_list'
 
     def get_queryset(self):
-        """
-        Возвращает последние пять опубликованных вопросов (не включая те,
-        что запланированы на будущее).
-        """
-        # __lte означает "меньше или равно" (less than or equal to)
         return Question.objects.filter(
             pub_date__lte=timezone.now()
         ).order_by('-pub_date')[:5]
@@ -26,9 +21,6 @@ class DetailView(generic.DetailView):
     template_name = 'polls/detail.html'
 
     def get_queryset(self):
-        """
-        Исключает любые вопросы, которые еще не опубликованы.
-        """
         return Question.objects.filter(pub_date__lte=timezone.now())
 
 class ResultsView(generic.DetailView):
@@ -36,7 +28,6 @@ class ResultsView(generic.DetailView):
     template_name = 'polls/results.html'
 
 def vote(request, question_id):
-    # ... (код функции vote остается БЕЗ ИЗМЕНЕНИЙ, как в Tutorial 4)
     question = get_object_or_404(Question, pk=question_id)
     try:
         selected_choice = question.choice_set.get(pk=request.POST['choice'])
@@ -48,4 +39,5 @@ def vote(request, question_id):
     else:
         selected_choice.votes = F('votes') + 1
         selected_choice.save()
+
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
